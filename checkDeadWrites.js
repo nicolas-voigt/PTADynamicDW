@@ -59,6 +59,16 @@
          * @param {boolean} isOpAssign True if the operation is of the form o.p op= e (TODO: check that)
          */
         this.putFieldPre = function(iid, base, offset, val, isComputed, isOpAssign) {};
+        /**
+         * 
+         * @param {number} iid  the statuc instruction ID
+         * @param {object} name the variable name
+         * @param {*} val the value
+         * @param {boolean} isArgument is true is the variable is arguments or a formal parameter
+         * @param {number} argumentIndex the argument index (start 0) or -1 if not a formal parameter
+         * @param {boolean} isCatchParam is true if the variable is a parameter of a catch statement
+         */
+		this.declare = function(iid, name, val, isArgument, argumentIndex, isCatchParam) {};
     }
     sandbox.analysis = new MyAnalysis();
 })(J$);
