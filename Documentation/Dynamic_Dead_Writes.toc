@@ -1,0 +1,14 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}Abstract}{1}{section.1}
+\contentsline {section}{\numberline {2}Goals from the Tasks-Sheet}{1}{section.2}
+\contentsline {section}{\numberline {3}Introduction}{2}{section.3}
+\contentsline {subsection}{\numberline {3.1}Which kinds of "Dead-Writes" should be now detected by our written Code-Analysis and subsequently removed?}{2}{subsection.3.1}
+\contentsline {section}{\numberline {4}Project consists of:}{3}{section.4}
+\contentsline {subsection}{\numberline {4.1}First Tests to get familar with Jalangi}{3}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Our Jalangi-Code-Analysis / Algorithm}{3}{subsection.4.2}
+\contentsline {subsection}{\numberline {4.3}Sample Applications which contains "Dead-Writes"}{3}{subsection.4.3}
+\contentsline {section}{\numberline {5}Results}{4}{section.5}
+\contentsline {subsection}{\numberline {5.1}Problems which occured during our work}{4}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}Conclusion}{4}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Outlook}{4}{subsection.5.3}
+\contentsline {section}{\numberline {6}References}{4}{section.6}
