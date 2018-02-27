@@ -13,5 +13,5 @@
  *   You should have received a copy of the GNU General Public License
  *   along with PTADynamicDW.  If not, see <http://www.gnu.org/licenses/>.
  */
-var a = function() { var a; var aa = 3; a = 4}; // init function and two variables inside the function, no read
-var b = new Object(); b.prototype.b = function () { var a; var aa = 3; a = 4}; // object assignment via prototypes
+var a = function() { var a; var aa = 3; a = 4;}; // init function and two variables inside the function, no read
+var b = new Object(); b.b = function () { var a; var aa = 3; a = 4;}; // object assignment via prototypes

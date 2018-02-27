@@ -20,6 +20,6 @@ var bb = 3; // init and assign, no write
 var d; d = 3; d = 4; // init and assign x2, no read
 var e = function() { console.log("test")}; // init and function assign, no read/execute
 var f = {a: "test"} // init and object assign, no read
-var g = new Object(); g.prototype.a = "test" // init and write object, no read
+var g = new Object(); g.a = "test"; // init and write object, no read
 var h = []; // init empty array
 var i = []; i[3] = 6; // init array, write to array, no read
