@@ -20,15 +20,15 @@ var a; // PASS
 var b; b = 3; // PASS
 // test #3 assign a value, never read (static)
 var bb = 3; // PASS
-// test #4 init a variable, one write assign, one write over write without read (dynamic), no further read (static)
+// test #4-5 init a variable, one write assign, one write over write without read (dynamic), no further read (static)
 var d; d = 3; d = 4; // static: PASS, dynamic: PASS
-// test #5 init a variable (here a function), never use it (static)
+// test #6 init a variable (here a function), never use it (static)
 var e = function() { console.log("test");}; // PASS
-// test #6 init an object, init a value in an object never use them (static#1) and (static#2)
-var f = {a: "test"}; // static#1 PASS static#2 NOPASS
-// test #7 init a new object, write a property in the object, never use this property (static#2)
+// test #7-8 init an object, init a value in an object never use them (static) and (static)
+var f = {a: "test"}; // 7 PASS, 8 NOPASS
+// test #9 init a new object, write a property in the object, never use this property (static)
 var g = new Object(); g.a = "test"; // NOPASS
-// test #8 init an array (object-like) and never use it (static)
+// test #10 init an array (object-like) and never use it (static)
 var h = []; // PASS
-// test #9 init an array, pass a value, never read it (static)
+// test #11 init an array, pass a value, never read it (static)
 var i = []; i[3] = 6; // NOPASS
