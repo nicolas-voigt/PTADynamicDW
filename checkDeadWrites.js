@@ -13,7 +13,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with PTADynamicDW.  If not, see <http://www.gnu.org/licenses/>.
  */
-// Author: Kai Hase, Nicolas Voigt
+// Author: Kai-Nico Nase, Nicolas Voigt
 
 // do not remove the following comment
 // JALANGI DO NOT INSTRUMENT
