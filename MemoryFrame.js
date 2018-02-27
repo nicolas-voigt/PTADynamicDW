@@ -41,7 +41,7 @@ var MemoryFrame = /** @class */ (function () {
         var returnValue = new Array();
         for (var _i = 0, _a = this.m_variables; _i < _a.length; _i++) {
             variable = _a[_i];
-            returnValue.concat(variable.deadwrites());
+            returnValue = returnValue.concat(variable.deadwrites());
         }
         return returnValue;
     };
@@ -57,7 +57,7 @@ var MemoryFrame = /** @class */ (function () {
             // the variable is not found, creating a new one
             variable = new Variable(name);
             this.m_variables.push(variable);
-            console.log("variable " + name + " created in frame " + this.ID());
+            //console.log("variable " + name + " created in frame " + this.ID());
         }
         if (readOrWrite) {
             // read
@@ -101,7 +101,8 @@ var MemoryFrame = /** @class */ (function () {
         for (var _i = 0, _a = this.m_variables; _i < _a.length; _i++) {
             variable = _a[_i];
             variable.frameEnd();
-            retValue.concat(variable.deadwrites());
+            //console.log("deadwrites for " + variable.name() + ":" + variable.deadwrites().toString());
+            retValue = retValue.concat(variable.deadwrites());
         }
         // Terminate all the child frames
         var frame;
@@ -109,10 +110,11 @@ var MemoryFrame = /** @class */ (function () {
             frame = _c[_b];
             if (!frame.isFrameEnded()) {
                 console.log("Frame " + frame.ID() + " is not ended");
-                retValue.concat(frame.endFrame());
+                retValue = retValue.concat(frame.endFrame());
             }
         }
         this.m_frameEnded = true;
+        //console.log("Deadwrites for frame " + this.ID() + ": " + retValue.toString());
         return retValue;
     };
     return MemoryFrame;
@@ -138,12 +140,12 @@ var Variable = /** @class */ (function () {
     Variable.prototype.read = function (iid) {
         if (this.m_lastIsRead) {
             // read over read, everything is ok
-            console.log("variable " + this.name() + " read (over read)");
+            //console.log("variable " + this.name() + " read (over read)");
         }
         if (this.m_lastIsWritten) {
             // read over write, everything is ok
             this.m_lastIsWritten = false;
-            console.log("variable " + this.name() + " read (over write)");
+            //console.log("variable " + this.name() + " read (over write)");
         }
         this.m_LastRead = new VariableEvent(iid);
         this.m_lastIsRead = true; // set last to read
@@ -155,7 +157,7 @@ var Variable = /** @class */ (function () {
     Variable.prototype.written = function (iid) {
         if (this.m_lastIsRead) {
             // write over read, everything is ok
-            console.log("variable " + this.name() + " written (over read)");
+            //console.log("variable " + this.name() + " written (over read)");
             this.m_lastIsRead = false;
         }
         if (this.m_lastIsWritten) {
@@ -182,8 +184,10 @@ var Variable = /** @class */ (function () {
      * Needs to be called at the frame end to detect the static deadwrites
      */
     Variable.prototype.frameEnd = function () {
+        //console.log("End for variable " + this.name() + " lastIsRead: " + this.m_lastIsRead + " lastIsWritten: " + this.m_lastIsWritten);
         if (this.m_lastIsWritten) {
             // the last call is a write, this is a deadwrite
+            console.log("static deadwrite for variable " + this.name());
             this.m_deadwrites.push(new DeadWrite(this.m_LastWritten.IID(), undefined));
         }
     };
@@ -238,6 +242,14 @@ var DeadWrite = /** @class */ (function () {
      */
     DeadWrite.prototype.DeadwriteDetected = function () {
         return this.iid2;
+    };
+    DeadWrite.prototype.toString = function () {
+        if (this.iid2 !== -1) {
+            return "Dynamic deadwrite found at position " + this.iid2 + " (source: " + this.iid1 + " )";
+        }
+        else {
+            return "Static deadwrite found at position " + this.iid1;
+        }
     };
     return DeadWrite;
 }());
@@ -297,7 +309,7 @@ function FunctionExitHook(iid, returnVal, wrappedExceptionVal) {
     // end the frame and show the deadwrites
     var deadwrites = currentFrame.endFrame();
     console.log("Deadwrites for frame " + currentFrame.ID() + ": " + deadwrites.length);
-    console.log(deadwrites);
+    console.log(deadwrites.toString());
     // reset the frame to the parent before resuming
     currentFrame = currentFrame.getParent();
 }

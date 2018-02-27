@@ -44,7 +44,7 @@ class MemoryFrame {
         var variable: Variable;
         var returnValue: DeadWrite[] = new Array<DeadWrite>();
         for (variable of this.m_variables) {
-            returnValue.concat(variable.deadwrites());
+            returnValue = returnValue.concat(variable.deadwrites());
         }
         return returnValue;
     }
@@ -60,7 +60,7 @@ class MemoryFrame {
             // the variable is not found, creating a new one
             variable = new Variable(name);
             this.m_variables.push(variable);
-            console.log("variable " + name + " created in frame " + this.ID());
+            //console.log("variable " + name + " created in frame " + this.ID());
         }
         if (readOrWrite) {
             // read
@@ -101,17 +101,19 @@ class MemoryFrame {
         }
         for (variable of this.m_variables) {
             variable.frameEnd();
-            retValue.concat(variable.deadwrites());
+            //console.log("deadwrites for " + variable.name() + ":" + variable.deadwrites().toString());
+            retValue = retValue.concat(variable.deadwrites());
         }
         // Terminate all the child frames
         var frame: MemoryFrame;
         for (frame of currentFrame.childs()){
             if (!frame.isFrameEnded()) {
                 console.log("Frame " + frame.ID() + " is not ended");
-                retValue.concat(frame.endFrame());
+                retValue = retValue.concat(frame.endFrame());
             }
         }
         this.m_frameEnded = true;
+        //console.log("Deadwrites for frame " + this.ID() + ": " + retValue.toString());
         return retValue;
     }
 }
@@ -143,12 +145,12 @@ class Variable {
     public read(iid: number): void {
         if (this.m_lastIsRead) {
             // read over read, everything is ok
-            console.log("variable " + this.name() + " read (over read)");
+            //console.log("variable " + this.name() + " read (over read)");
         }
         if (this.m_lastIsWritten) {
             // read over write, everything is ok
             this.m_lastIsWritten = false;
-            console.log("variable " + this.name() + " read (over write)");
+            //console.log("variable " + this.name() + " read (over write)");
         }
         this.m_LastRead = new VariableEvent(iid);
         this.m_lastIsRead = true; // set last to read
@@ -160,7 +162,7 @@ class Variable {
     public written(iid: number): void {
         if (this.m_lastIsRead) {
             // write over read, everything is ok
-            console.log("variable " + this.name() + " written (over read)");
+            //console.log("variable " + this.name() + " written (over read)");
             this.m_lastIsRead = false;
         }
         if (this.m_lastIsWritten) {
@@ -187,8 +189,10 @@ class Variable {
      * Needs to be called at the frame end to detect the static deadwrites
      */
     public frameEnd(): void {
+        //console.log("End for variable " + this.name() + " lastIsRead: " + this.m_lastIsRead + " lastIsWritten: " + this.m_lastIsWritten);
         if (this.m_lastIsWritten) {
             // the last call is a write, this is a deadwrite
+            console.log("static deadwrite for variable " + this.name());
             this.m_deadwrites.push(new DeadWrite(this.m_LastWritten.IID(), undefined));
         }
     }
@@ -255,6 +259,13 @@ class DeadWrite {
     public DeadwriteDetected(): number {
         return this.iid2;
     }
+    public toString(): string {
+        if (this.iid2 !== -1) {
+            return "Dynamic deadwrite found at position " + this.iid2 + " (source: " + this.iid1 + " )";
+        } else {
+            return "Static deadwrite found at position " + this.iid1;
+        }
+    }
 }
 let frameID: number = 0;
 const mainFrame: MemoryFrame = new MemoryFrame(undefined, frameID++);
@@ -315,7 +326,7 @@ function FunctionExitHook(iid, returnVal, wrappedExceptionVal) {
     // end the frame and show the deadwrites
     var deadwrites: DeadWrite[] = currentFrame.endFrame();
     console.log("Deadwrites for frame " + currentFrame.ID() + ": " + deadwrites.length);
-    console.log(deadwrites);
+    console.log(deadwrites.toString());
     // reset the frame to the parent before resuming
     currentFrame = currentFrame.getParent();
 }
