@@ -14,12 +14,21 @@
  *   along with PTADynamicDW.  If not, see <http://www.gnu.org/licenses/>.
  */
 // Level 1 tests
-var a; // init no read no write
-var b; b = 3; // init and assign, no write
-var bb = 3; // init and assign, no write
-var d; d = 3; d = 4; // init and assign x2, no read
-var e = function() { console.log("test")}; // init and function assign, no read/execute
-var f = {a: "test"} // init and object assign, no read
-var g = new Object(); g.a = "test"; // init and write object, no read
-var h = []; // init empty array
-var i = []; i[3] = 6; // init array, write to array, no read
+// test #1 unused variable (static)
+var a; // PASS
+// test #2 used variable, written but never read again (static)
+var b; b = 3; // PASS
+// test #3 assign a value, never read (static)
+var bb = 3; // PASS
+// test #4 init a variable, one write assign, one write over write without read (dynamic), no further read (static)
+var d; d = 3; d = 4; // static: PASS, dynamic: PASS
+// test #5 init a variable (here a function), never use it (static)
+var e = function() { console.log("test");}; // PASS
+// test #6 init an object, init a value in an object never use them (static#1) and (static#2)
+var f = {a: "test"}; // static#1 PASS static#2 NOPASS
+// test #7 init a new object, write a property in the object, never use this property (static#2)
+var g = new Object(); g.a = "test"; // NOPASS
+// test #8 init an array (object-like) and never use it (static)
+var h = []; // PASS
+// test #9 init an array, pass a value, never read it (static)
+var i = []; i[3] = 6; // NOPASS

@@ -52,9 +52,9 @@ class MemoryFrame {
      * main variable call
      * @param {string} name the variable name
      * @param {number} iid the call IID
-     * @param {boolean} readOrWrite true if read, false if write
+     * @param {boolean|undefined} readOrWrite true if read, false if write, undefined if variable declaration
      */
-    public variableEvent(name: string, iid: number, readOrWrite: boolean): void {
+    public variableEvent(name: string, iid: number, readOrWrite: boolean | undefined): void {
         let variable = this.variableExists(name);
         if (variable === undefined) {
             // the variable is not found, creating a new one
@@ -62,7 +62,10 @@ class MemoryFrame {
             this.m_variables.push(variable);
             //console.log("variable " + name + " created in frame " + this.ID());
         }
-        if (readOrWrite) {
+        if (readOrWrite === undefined) {
+            // do nothing, the variable is just defined for later
+            variable.init(iid);
+        } else if (readOrWrite) {
             // read
             variable.read(iid);
         } else {
@@ -127,6 +130,7 @@ class Variable {
     private m_LastWritten: VariableEvent;
     private m_lastIsRead: boolean;
     private m_lastIsWritten: boolean;
+    private m_initIID: number;
     private m_deadwrites: DeadWrite[];
     /**
      * Creates a variable
@@ -145,12 +149,12 @@ class Variable {
     public read(iid: number): void {
         if (this.m_lastIsRead) {
             // read over read, everything is ok
-            //console.log("variable " + this.name() + " read (over read)");
+            console.log("variable " + this.name() + " read (over read)");
         }
         if (this.m_lastIsWritten) {
             // read over write, everything is ok
             this.m_lastIsWritten = false;
-            //console.log("variable " + this.name() + " read (over write)");
+            console.log("variable " + this.name() + " read (over write)");
         }
         this.m_LastRead = new VariableEvent(iid);
         this.m_lastIsRead = true; // set last to read
@@ -162,16 +166,19 @@ class Variable {
     public written(iid: number): void {
         if (this.m_lastIsRead) {
             // write over read, everything is ok
-            //console.log("variable " + this.name() + " written (over read)");
+            console.log("variable " + this.name() + " written (over read)");
             this.m_lastIsRead = false;
         }
         if (this.m_lastIsWritten) {
             // write over write, dynamic dead write !
             console.log("variable " + this.name() + " written (over write) dynamic deadwrite !");
-            this.m_deadwrites.push(new DeadWrite(this.m_LastWritten.IID(), iid));
+            this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), iid));
         }
         this.m_LastWritten = new VariableEvent(iid);
         this.m_lastIsWritten = true;
+    }
+    public init(iid: number): void {
+        this.m_initIID = iid;
     }
     /**
      * @returns {Object} the qualified deadwrites
@@ -193,7 +200,12 @@ class Variable {
         if (this.m_lastIsWritten) {
             // the last call is a write, this is a deadwrite
             console.log("static deadwrite for variable " + this.name());
-            this.m_deadwrites.push(new DeadWrite(this.m_LastWritten.IID(), undefined));
+            this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), undefined));
+        }
+        if (!this.m_lastIsRead && !this.m_lastIsWritten) {
+            // the variable was defined, but never used
+            console.log("variable " + this.name() + " was declared but never used");
+            this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, undefined, undefined));
         }
     }
 }
@@ -235,16 +247,32 @@ class DeadWrite {
      */
     private iid2: number;
     /**
+     * The initialisation IID
+     */
+    private initIID: number;
+    /**
+     * The variable name
+     */
+    private name: string;
+    /**
      * Deadwrite constructor
+     * @param {string} name the variable name
+     * @param {number} initIID the variable initialisation IID
      * @param {number} dw1 the first call
      * @param {number} dw2 the second call
      */
-    constructor(dw1: number, dw2: number) {
-        this.iid1 = dw1;
-        if (dw2 === undefined) {
+    constructor(name: string, initIID: number, dw1: number, dw2: number) {
+        this.name = name;
+        this.initIID = initIID;
+        if (dw1 === undefined && dw2 === undefined) {
+            this.iid1 = -1;
+            this.iid2 = -1; // both set to -1 for unused variable
+        } else if (dw2 === undefined) {
             this.iid2 = -1; // -1 equals to end of execution, static deadwrite
+            this.iid1 = dw1;
         } else {
             this.iid2 = dw2;
+            this.iid1 = dw1;
         }
     }
     /**
@@ -260,10 +288,12 @@ class DeadWrite {
         return this.iid2;
     }
     public toString(): string {
-        if (this.iid2 !== -1) {
-            return "Dynamic deadwrite found at position " + this.iid2 + " (source: " + this.iid1 + " )";
+        if (this.iid1 === -1 && this.iid2 === -1) {
+            return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] unused variable";
+        } else if (this.iid2 !== -1) {
+            return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] Dynamic deadwrite found at position " + this.iid2 + " (source: " + this.iid1 + " )";
         } else {
-            return "Static deadwrite found at position " + this.iid1;
+            return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] Static deadwrite found at position " + this.iid1;
         }
     }
 }
@@ -317,7 +347,7 @@ function FunctionEnterHook(iid, f, dis, args) {
     console.log("frame " + frameID + " started")
 }
 /**
- * 
+ * Hook for the FunctionExit jalangi callback
  * @param {number} iid the call IID
  * @param {*} returnVal the value returned by the function
  * @param {Object|undefined} wrappedExceptionVal if an exception was raised, else undefined
@@ -330,7 +360,9 @@ function FunctionExitHook(iid, returnVal, wrappedExceptionVal) {
     // reset the frame to the parent before resuming
     currentFrame = currentFrame.getParent();
 }
-
+/**
+ * Hook for the EndExecution jalangi callback
+ */
 function EndExecutionHook() {
     if (currentFrame !== mainFrame) {
         // something happened ?!
@@ -340,4 +372,14 @@ function EndExecutionHook() {
     } else {
         FunctionExitHook(0, undefined, undefined); // call the exit frame for the main frame
     }
+}
+/**
+ * 
+ * @param {number} iid the call IID 
+ * @param {string} name the variable name
+ * @param {*} val the variable value 
+ * @param {boolean} isArgument true if the variable is a function argument
+ */
+function declareHook(iid, name, val, isArgument) {
+    currentFrame.variableEvent(name, iid, undefined);
 }
