@@ -52,7 +52,9 @@
          * @param {boolean} isOpAssign True if the operation is of the form o.p op= e (TODO: check that)
          * @param {boolean} isMethodCall if the property is accessed using () (method call)
          */
-        this.getFieldPre = function(iid, base, offset, isComputed, isOpAssign, isMethodCall) {};
+        this.getFieldPre = function(iid, base, offset, isComputed, isOpAssign, isMethodCall) {
+            console.log(iid + ":getfieldPre:  base:" + JSON.stringify(base) + " isComputed:" + isComputed + " isOpAssign:" + isOpAssign + " isMethodCall:" + isMethodCall);
+        };
         /**
          * 
          * @param {number} iid the static instruction ID
@@ -62,7 +64,9 @@
          * @param {boolean} isComputed if the property is written using []
          * @param {boolean} isOpAssign True if the operation is of the form o.p op= e (TODO: check that)
          */
-        this.putFieldPre = function(iid, base, offset, val, isComputed, isOpAssign) {};
+        this.putFieldPre = function(iid, base, offset, val, isComputed, isOpAssign) {
+            console.log(iid + ":putFieldPre: base:" + JSON.stringify(base) + " offset:" + offset + " val:" + val + " isComputed:" + isComputed + " isOpAssign:" + isOpAssign);
+        };
         /**
          * 
          * @param {number} iid  the statuc instruction ID
@@ -98,6 +102,20 @@
         this.endExecution = function() {
             EndExecutionHook();
         };
+        /**
+         * 
+         * @param {number} iid the call IID
+         * @param {function} f the function object called
+         * @param {*} base the base (receiver) object
+         * @param {array} args the arguments array
+         * @param {boolean} isConstructor true if a new object is instanciated
+         * @param {boolean} isMethod true if this function is a method (member of an object)
+         * @param {number} functionIid the unique function IID
+         * @param {number} functionSid static IID that will match the functionEnter hook
+         */
+        this.invokeFunPre = function(iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
+            invokeFunPreHook(iid, f, base, args, isConstructor, isMethod, functionIid, functionSid);
+        };
     }
     sandbox.analysis = new MyAnalysis();
 })(J$);
@@ -109,8 +127,11 @@ var MemoryFrame = /** @class */ (function () {
      * MemoryFrame constructor
      * @param {Object} parent the parent frame (if any)
      * @param {number} ID the frame ID
+     * @param {number} subID the frame subID (if it is a child of another frame, this argument is used by addChild())
+     * @see MemoryFrame.addChildFrame()
      */
-    function MemoryFrame(parent, ID) {
+    function MemoryFrame(parent, ID, subID) {
+        if (subID === void 0) { subID = 0; }
         if (parent === undefined) {
             // first frame
         }
@@ -118,20 +139,32 @@ var MemoryFrame = /** @class */ (function () {
             this.m_parent = parent;
         }
         this.m_ID = ID;
+        this.m_SubID = subID;
         this.m_childs = new Array();
         this.m_variables = new Array();
+        this.m_subFrameID = 0; // start at 0 for all subframes
     }
     /**
      * @returns {number} the frame ID
      */
     MemoryFrame.prototype.ID = function () {
-        return this.m_ID;
+        return this.m_ID.toString() + ":" + this.m_SubID.toString();
     };
     /**
      * @returns {boolean} if the frame is ended
      */
     MemoryFrame.prototype.isFrameEnded = function () {
         return this.m_frameEnded;
+    };
+    /**
+     * Creates a child frame and returns it
+     * @param {number} frameSID the frame SID (or unique call ID)
+     * @returns {Object} the created child frame
+     */
+    MemoryFrame.prototype.addChildFrame = function (frameSID) {
+        var tmp = new MemoryFrame(this, frameSID, this.m_subFrameID++);
+        this.m_childs.push(tmp);
+        return tmp;
     };
     /**
      * @returns {Array} all the childs MemoryFrames
@@ -161,11 +194,20 @@ var MemoryFrame = /** @class */ (function () {
         var variable = this.variableExists(name);
         if (variable === undefined) {
             // the variable is not found, creating a new one
-            variable = new Variable(name);
-            this.m_variables.push(variable);
-            //console.log("variable " + name + " created in frame " + this.ID());
+            if (name === "Object") {
+                console.log(iid + ":Object found, creating a frame");
+                this.addChildFrame(iid);
+            }
+            else {
+                variable = new Variable(name);
+                this.m_variables.push(variable);
+                console.log(iid + ":variable " + name + " created in frame " + this.ID());
+            }
         }
-        if (readOrWrite === undefined) {
+        if (variable === undefined) {
+            // do not init a variable that is an object, it has to stay trapped
+        }
+        else if (readOrWrite === undefined) {
             // do nothing, the variable is just defined for later
             variable.init(iid);
         }
@@ -250,12 +292,12 @@ var Variable = /** @class */ (function () {
     Variable.prototype.read = function (iid) {
         if (this.m_lastIsRead) {
             // read over read, everything is ok
-            console.log("variable " + this.name() + " read (over read)");
+            console.log(iid + ":variable " + this.name() + " read (over read)");
         }
         if (this.m_lastIsWritten) {
             // read over write, everything is ok
             this.m_lastIsWritten = false;
-            console.log("variable " + this.name() + " read (over write)");
+            console.log(iid + ":variable " + this.name() + " read (over write)");
         }
         this.m_LastRead = new VariableEvent(iid);
         this.m_lastIsRead = true; // set last to read
@@ -267,13 +309,17 @@ var Variable = /** @class */ (function () {
     Variable.prototype.written = function (iid) {
         if (this.m_lastIsRead) {
             // write over read, everything is ok
-            console.log("variable " + this.name() + " written (over read)");
+            console.log(iid + ":variable " + this.name() + " written (over read)");
             this.m_lastIsRead = false;
         }
-        if (this.m_lastIsWritten) {
+        else if (this.m_lastIsWritten) {
             // write over write, dynamic dead write !
-            console.log("variable " + this.name() + " written (over write) dynamic deadwrite !");
+            console.log(iid + ":variable " + this.name() + " written (over write) dynamic deadwrite !");
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), iid));
+        }
+        else {
+            // first write after the declaration
+            console.log(iid + ": variable " + this.name() + " written for the first time");
         }
         this.m_LastWritten = new VariableEvent(iid);
         this.m_lastIsWritten = true;
@@ -426,8 +472,10 @@ function putFieldPreHook() {
  * @param {Array} args the function arguments
  */
 function FunctionEnterHook(iid, f, dis, args) {
-    currentFrame = new MemoryFrame(currentFrame, frameID++); // create a new frame
-    console.log("frame " + frameID + " started");
+    //TODO it depends on the iid to decide if it's a child frame, or if it exists already (@see invokeFunPre)
+    //currentFrame = new MemoryFrame(currentFrame, frameID++); // create a new frame
+    //console.log("frame " + frameID + " started")
+    console.log("FunctionEnterHook not implemented");
 }
 /**
  * Hook for the FunctionExit jalangi callback
@@ -437,11 +485,12 @@ function FunctionEnterHook(iid, f, dis, args) {
  */
 function FunctionExitHook(iid, returnVal, wrappedExceptionVal) {
     // end the frame and show the deadwrites
-    var deadwrites = currentFrame.endFrame();
-    console.log("Deadwrites for frame " + currentFrame.ID() + ": " + deadwrites.length);
-    console.log(deadwrites.toString());
+    //var deadwrites: DeadWrite[] = currentFrame.endFrame();
+    //console.log("Deadwrites for frame " + currentFrame.ID() + ": " + deadwrites.length);
+    //console.log(deadwrites.toString());
     // reset the frame to the parent before resuming
-    currentFrame = currentFrame.getParent();
+    //currentFrame = currentFrame.getParent();
+    console.log("FunctionExitHook not implemented");
 }
 /**
  * Hook for the EndExecution jalangi callback
@@ -466,4 +515,26 @@ function EndExecutionHook() {
  */
 function declareHook(iid, name, val, isArgument) {
     currentFrame.variableEvent(name, iid, undefined);
+}
+/**
+  *
+  * @param {number} iid the call IID
+  * @param {function} f the function object called
+  * @param {*} base the base (receiver) object
+  * @param {array} args the arguments array
+  * @param {boolean} isConstructor true if a new object is instanciated
+  * @param {boolean} isMethod true if this function is a method (member of an object)
+  * @param {number} functionIid the unique function IID
+  * @param {number} functionSid static IID that will match the functionEnter hook
+  */
+function invokeFunPreHook(iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
+    if (isMethod) {
+        // function is a object member, it is a child of the currentFrame
+        currentFrame = currentFrame.addChildFrame(functionSid); // add a new child frame
+        console.log("new method call !");
+        // functionSid will be the IID given at FunctionEnterHook to find the frame
+    }
+    if (isConstructor) {
+        console.log(iid + ":new object created ! " + f + " " + base + " " + functionIid + " " + functionSid);
+    }
 }
