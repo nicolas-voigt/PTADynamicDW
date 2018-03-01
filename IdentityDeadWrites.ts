@@ -17,6 +17,9 @@ export class RunJalangi{
             throw new Error("Usage of IdentifyDeadWrites: node IdentifyDeadWrites JALANGI_PATH JALANGI_ANALYSES_FILE FileToTest");
         }
     }
+    getFileToTest(): string {
+        return this.fileToTest;
+    }
     run(): string {
         console.log("Running analyses: " + this.jalangiAnalysisFile);
         console.log("On file: " + this.fileToTest);

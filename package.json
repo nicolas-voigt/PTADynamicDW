@@ -20,6 +20,14 @@
   },
   "homepage": "https://github.com/nicolas-voigt/PTADynamicDW#readme",
   "devDependencies": {
+    "@types/escodegen": "0.0.6",
+    "@types/esprima": "^4.0.1",
+    "@types/estraverse": "0.0.6",
     "@types/node": "^9.4.6"
+  },
+  "dependencies": {
+    "escodegen": "^1.9.1",
+    "esprima": "^4.0.0",
+    "estraverse": "^4.2.0"
   }
 }

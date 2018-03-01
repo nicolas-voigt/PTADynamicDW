@@ -1,3 +1,4 @@
+"use strict";
 var MemoryFrame = /** @class */ (function () {
     /**
      * MemoryFrame constructor

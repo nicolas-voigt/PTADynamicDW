@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 // node $JALANGI_ROOT/src/js/commands/jalangi.js --inlineIID -- inlineSource --analysis ./checkDeadWrites.js $TESTFILE
 var JALANGI_RUN = "/src/js/commands/jalangi.js";
 var JALANGI_OPTS = "--inlineIID --inlineSource --analysis";
@@ -17,6 +17,9 @@ var RunJalangi = /** @class */ (function () {
             throw new Error("Usage of IdentifyDeadWrites: node IdentifyDeadWrites JALANGI_PATH JALANGI_ANALYSES_FILE FileToTest");
         }
     }
+    RunJalangi.prototype.getFileToTest = function () {
+        return this.fileToTest;
+    };
     RunJalangi.prototype.run = function () {
         console.log("Running analyses: " + this.jalangiAnalysisFile);
         console.log("On file: " + this.fileToTest);
