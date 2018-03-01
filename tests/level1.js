@@ -15,20 +15,20 @@
  */
 // Level 1 tests
 // test #1 unused variable (static)
-//var a; // PASS
+var a; // PASS
 // test #2 used variable, written but never read again (static)
-//var b; b = 3; // PASS
+var b; b = 3; // PASS
 // test #3 assign a value, never read (static)
-//var bb = 3; // PASS
+var bb = 3; // PASS
 // test #4-5 init a variable, one write assign, one write over write without read (dynamic), no further read (static)
-//var d; d = 3; d = 4; // static: PASS, dynamic: PASS
+var d; d = 3; d = 4; // static: PASS, dynamic: PASS
 // test #6 init a variable (here a function), never use it (static)
-//var e = function() { console.log("test");}; // PASS
+var e = function() { console.log("test");}; // PASS
 // test #7-8 init an object, init a value in an object never use them (static) and (static)
 var f = {ff: "test1"}; // 7 PASS, 8 NOPASS
 // test #9 init a new object, write a property in the object, never use this property (static)
 var g = new Object(); g.gg = "test2"; // NOPASS
 // test #10 init an array (object-like) and never use it (static)
-//var h = []; // PASS
+var h = []; // PASS
 // test #11 init an array, pass a value, never read it (static)
 var i = []; i[3] = 6; // NOPASS

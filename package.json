@@ -1,0 +1,25 @@
+{
+  "name": "pta-deadwrites-project",
+  "version": "0.0.1",
+  "description": "Our PTA Project for deadwrites",
+  "main": "IdentityDeadWrites.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicolas-voigt/PTADynamicDW.git"
+  },
+  "author": "Kai-Nico Nase, Nicolas Voigt",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/nicolas-voigt/PTADynamicDW/issues"
+  },
+  "homepage": "https://github.com/nicolas-voigt/PTADynamicDW#readme",
+  "devDependencies": {
+    "@types/node": "^9.4.6"
+  }
+}

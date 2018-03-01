@@ -29,7 +29,7 @@
          * @param {boolean} isScriptLocal if the var is declared global unsing var
          */
         this.read = function(iid, name, val, isGlobal, isScriptLocal) {
-            readHook(iid, name, isScriptLocal);
+            readHook(J$.iidToLocation(J$.sid, iid), name, isScriptLocal);
         };
         /**
          * Executed at each variable write
@@ -41,7 +41,7 @@
          * @param {boolean} isScriptLocal if the var is declared global unsing var
          */
         this.write = function(iid, name, val, lhs, isGlobal, isScriptLocal) {
-            writeHook(iid, name, isScriptLocal);
+            writeHook(J$.iidToLocation(J$.sid, iid), name, isScriptLocal);
         };
         /**
          * 
@@ -53,7 +53,7 @@
          * @param {boolean} isMethodCall if the property is accessed using () (method call)
          */
         this.getFieldPre = function(iid, base, offset, isComputed, isOpAssign, isMethodCall) {
-            console.log(iid + ":getfieldPre:  base:" + JSON.stringify(base) + " isComputed:" + isComputed + " isOpAssign:" + isOpAssign + " isMethodCall:" + isMethodCall);
+            //console.log(iid + ":getfieldPre:  base:" + JSON.stringify(base) + " isComputed:" + isComputed + " isOpAssign:" + isOpAssign + " isMethodCall:" + isMethodCall);
         };
         /**
          * 
@@ -65,7 +65,7 @@
          * @param {boolean} isOpAssign True if the operation is of the form o.p op= e (TODO: check that)
          */
         this.putFieldPre = function(iid, base, offset, val, isComputed, isOpAssign) {
-            console.log(iid + ":putFieldPre: base:" + JSON.stringify(base) + " offset:" + offset + " val:" + val + " isComputed:" + isComputed + " isOpAssign:" + isOpAssign);
+            //console.log(iid + ":putFieldPre: base:" + JSON.stringify(base) + " offset:" + offset + " val:" + val + " isComputed:" + isComputed + " isOpAssign:" + isOpAssign);
         };
         /**
          * 
@@ -77,7 +77,7 @@
          * @param {boolean} isCatchParam is true if the variable is a parameter of a catch statement
          */
         this.declare = function(iid, name, val, isArgument, argumentIndex, isCatchParam) {
-            declareHook(iid, name, val, isArgument);
+            declareHook(J$.iidToLocation(J$.sid, iid), name, val, isArgument);
         };
         /**
          * 
@@ -87,7 +87,7 @@
          * @param {Array} args the function arguments
          */
         this.functionEnter = function (iid, f, dis, args){
-            FunctionEnterHook(iid, f, dis, args);
+            FunctionEnterHook(J$.iidToLocation(J$.sid, iid), f, dis, args);
         };
         /**
          * 
@@ -96,7 +96,7 @@
          * @param {Object|undefined} wrappedExceptionVal if an exception was raised, else undefined
          */
         this.functionExit = function(iid, returnVal, wrappedExceptionVal){
-            FunctionExitHook(iid,returnVal, wrappedExceptionVal);
+            FunctionExitHook(J$.iidToLocation(J$.sid, iid),returnVal, wrappedExceptionVal);
         };
 
         this.endExecution = function() {
@@ -114,7 +114,7 @@
          * @param {number} functionSid static IID that will match the functionEnter hook
          */
         this.invokeFunPre = function(iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
-            invokeFunPreHook(iid, f, base, args, isConstructor, isMethod, functionIid, functionSid);
+            invokeFunPreHook(J$.iidToLocation(J$.sid, iid), f, base, args, isConstructor, isMethod, functionIid, functionSid);
         };
     }
     sandbox.analysis = new MyAnalysis();
@@ -195,13 +195,13 @@ var MemoryFrame = /** @class */ (function () {
         if (variable === undefined) {
             // the variable is not found, creating a new one
             if (name === "Object") {
-                console.log(iid + ":Object found, creating a frame");
+                //console.log(iid + ":Object found, creating a frame");
                 this.addChildFrame(iid);
             }
             else {
                 variable = new Variable(name);
                 this.m_variables.push(variable);
-                console.log(iid + ":variable " + name + " created in frame " + this.ID());
+                //console.log("variable " + name + " created in frame " + this.ID());
             }
         }
         if (variable === undefined) {
@@ -257,14 +257,13 @@ var MemoryFrame = /** @class */ (function () {
             retValue = retValue.concat(variable.deadwrites());
         }
         // Terminate all the child frames
-        var frame;
-        for (var _b = 0, _c = currentFrame.childs(); _b < _c.length; _b++) {
-            frame = _c[_b];
+        //var frame: MemoryFrame;
+        /*for (frame of currentFrame.childs()){
             if (!frame.isFrameEnded()) {
                 console.log("Frame " + frame.ID() + " is not ended");
                 retValue = retValue.concat(frame.endFrame());
             }
-        }
+        }*/
         this.m_frameEnded = true;
         //console.log("Deadwrites for frame " + this.ID() + ": " + retValue.toString());
         return retValue;
@@ -292,12 +291,12 @@ var Variable = /** @class */ (function () {
     Variable.prototype.read = function (iid) {
         if (this.m_lastIsRead) {
             // read over read, everything is ok
-            console.log(iid + ":variable " + this.name() + " read (over read)");
+            //console.log(iid + ":variable " + this.name() + " read (over read)");
         }
         if (this.m_lastIsWritten) {
             // read over write, everything is ok
             this.m_lastIsWritten = false;
-            console.log(iid + ":variable " + this.name() + " read (over write)");
+            //console.log(iid + ":variable " + this.name() + " read (over write)");
         }
         this.m_LastRead = new VariableEvent(iid);
         this.m_lastIsRead = true; // set last to read
@@ -309,17 +308,17 @@ var Variable = /** @class */ (function () {
     Variable.prototype.written = function (iid) {
         if (this.m_lastIsRead) {
             // write over read, everything is ok
-            console.log(iid + ":variable " + this.name() + " written (over read)");
+            //console.log(iid + ":variable " + this.name() + " written (over read)");
             this.m_lastIsRead = false;
         }
         else if (this.m_lastIsWritten) {
             // write over write, dynamic dead write !
-            console.log(iid + ":variable " + this.name() + " written (over write) dynamic deadwrite !");
+            //console.log(iid + ":variable " + this.name() + " written (over write) dynamic deadwrite !");
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), iid));
         }
         else {
             // first write after the declaration
-            console.log(iid + ": variable " + this.name() + " written for the first time");
+            //console.log(iid + ": variable " + this.name() + " written for the first time");
         }
         this.m_LastWritten = new VariableEvent(iid);
         this.m_lastIsWritten = true;
@@ -346,12 +345,12 @@ var Variable = /** @class */ (function () {
         //console.log("End for variable " + this.name() + " lastIsRead: " + this.m_lastIsRead + " lastIsWritten: " + this.m_lastIsWritten);
         if (this.m_lastIsWritten) {
             // the last call is a write, this is a deadwrite
-            console.log("static deadwrite for variable " + this.name());
+            //console.log("static deadwrite for variable " + this.name());
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), undefined));
         }
         if (!this.m_lastIsRead && !this.m_lastIsWritten) {
             // the variable was defined, but never used
-            console.log("variable " + this.name() + " was declared but never used");
+            //console.log("variable " + this.name() + " was declared but never used");
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, undefined, undefined));
         }
     };
@@ -418,13 +417,16 @@ var DeadWrite = /** @class */ (function () {
     };
     DeadWrite.prototype.toString = function () {
         if (this.iid1 === -1 && this.iid2 === -1) {
-            return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] unused variable";
+            //return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] unused variable";
+            return this.initIID + " unused variable " + this.name;
         }
         else if (this.iid2 !== -1) {
-            return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] Dynamic deadwrite found at position " + this.iid2 + " (source: " + this.iid1 + " )";
+            return this.iid2 + " dynamic deadwrite for " + this.name;
+            //return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] Dynamic deadwrite found at position " + this.iid2 + " (source: " + this.iid1 + " )";
         }
         else {
-            return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] Static deadwrite found at position " + this.iid1;
+            return this.iid1 + " static deadwrite for " + this.name;
+            //return "[Variable: \"" + this.name + "\" init: " + this.initIID + " ] Static deadwrite found at position " + this.iid1;
         }
     };
     return DeadWrite;
@@ -485,12 +487,17 @@ function FunctionEnterHook(iid, f, dis, args) {
  */
 function FunctionExitHook(iid, returnVal, wrappedExceptionVal) {
     // end the frame and show the deadwrites
-    //var deadwrites: DeadWrite[] = currentFrame.endFrame();
-    //console.log("Deadwrites for frame " + currentFrame.ID() + ": " + deadwrites.length);
+    var deadwrites = currentFrame.endFrame();
+    var dw;
+    console.log("Deadwrites for frame " + currentFrame.ID() + ": " + deadwrites.length);
     //console.log(deadwrites.toString());
+    for (var _i = 0, deadwrites_1 = deadwrites; _i < deadwrites_1.length; _i++) {
+        dw = deadwrites_1[_i];
+        console.log(dw.toString());
+    }
     // reset the frame to the parent before resuming
-    //currentFrame = currentFrame.getParent();
-    console.log("FunctionExitHook not implemented");
+    currentFrame = currentFrame.getParent();
+    //console.log("FunctionExitHook not implemented");
 }
 /**
  * Hook for the EndExecution jalangi callback
@@ -531,10 +538,10 @@ function invokeFunPreHook(iid, f, base, args, isConstructor, isMethod, functionI
     if (isMethod) {
         // function is a object member, it is a child of the currentFrame
         currentFrame = currentFrame.addChildFrame(functionSid); // add a new child frame
-        console.log("new method call !");
+        //console.log("new method call !");
         // functionSid will be the IID given at FunctionEnterHook to find the frame
     }
     if (isConstructor) {
-        console.log(iid + ":new object created ! " + f + " " + base + " " + functionIid + " " + functionSid);
+        //console.log("new object created ! " + iid + " " + f + " " + base + " " + functionIid + " " + functionSid);
     }
 }
