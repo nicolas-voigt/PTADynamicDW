@@ -107,28 +107,36 @@ As already mentioned in the introduction, altogether we have created 11 differen
 \subsection{Task performed = $\surd$ and short Result descriptions:}
 \begin{enumerate}
 \item Main-Goal(1): of this project is to write a Jalangi[1] analysis that will find dead writes during the execution of JavaScript programs. The analysis should guarantee that some writes are dead for some possible executions of the program. $\surd$ \newline \textit{See section Jalangi-Analysis / Algorithm}
-\item Main-Goal(2): Given a JavaScript program, the output of the project will be the program without the dead writes 
-\item Write few simple JavaScript programs that contain dead writes  $\surd$ \newline \textit{See section samples which contain "deadwrites"}
+\item Main-Goal(2): Given a JavaScript program, the output of the project will be the program without the dead writes
+ $\surd$ \textit {That is performed by a launcher we have created, respectively interlinked with our J. C. analysis:} \begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.6\linewidth]{Launcher.jpg}
+	\caption{Shows simply the process  how to remove detected deadwrites.}
+	\label{img:grafik-dummy}
+\end{figure}
+\item Write few simple JavaScript programs that contain dead writes  $\surd$ \newline \textit{See section samples which contain "Deadwrites"}
 \item Get familiar with Jalangi2 and design and implement a Jalangi based analysis that finds dynamic dead writes  $\surd$ \textit{See section First tests + Jalangi-Analysis / Algorithm}
 \item Validate your implementation with the self-written programs  $\surd$ \newline \textit{See section samples which contain "deadwrites"}
 \item Parse each program using esprima to generate an AST. Traverse the AST using estraverse and delete the identify dead writes. 
-\item For the final evaluation, use the JavaScript libraries Backbone, Backbone LayoutManager,BigNumber, Bootstrap Datepicker, Cal-Heatmap, Countdown,
-Underscore. These libraries have available tests. Run your analysis while executing these tests 
+\item For the final evaluation, use the JavaScript libraries Backbone, Backbone LayoutManager,BigNumber, Bootstrap Datepicker, Cal-Heatmap, Countdown, Underscore. These libraries have available tests. Run your analysis while executing these tests 
 \item Remove the dead writes and run the tests again to see if any of them fail.
 \end{enumerate}
+\newpage
 \subsection{Overall, what percentage of writes are dead?}
+As can be seen in Figure 4, the analysis finds eight of eleven types of DeadWrites (PASS/NO PASS) => 8 / 11 = 72.72 $\%$.
 \subsection{What is the difference in size (bytes) of the program after removing the dead writes.}
 \subsection{Is there any noticeable performance improvements after removing the dead writes?}
-\newpage
+Since we do not have the necessary equipment, we were unable to carry out such types of performance tests.
 \section{Completion}
 \subsection{Some Problems which occurred before or during our work}
 \begin{itemize}
 \item Initially it was a big challenge to familiarize our self with Jalangi. There are exists documentations and introductory examples, but from our personal point of view, they are not really easy to understand.
 \item Before we could start with our work on the model or algorithm, we had to clarify beforehand, which kinds of deadwrites should be found, because this was not clearly defined on the task-sheet.
-\item Programming Javascript can be very frustrating in general, because you often get little or none feedback about e.g. syntax errors or something like that.  For this reason we have preprogrammed our code logic with type script(for more infos look section "...our Jalangi Code Analysis/Alorithm)
+\item Programming Javascript can be very frustrating in general, because you often get little or none feedback about e.g. syntax errors or something like that.  For this reason we have pre-programmed our code logic with type script(for more infos look section "...our Jalangi Code Analysis/Alorithm)
 \end{itemize}
 \subsection{Conclusion + Outlook}
 In this course project we've learned a lot about javascript, some of its properties and how to built a jalangi analysis that is able to detect several static and dynamic kinds of deadwrites in javascript programs. With this acquired knowledge of how to write in general a code analysis, we will also be able to use it for other purposes. The discovery of "DeadWrites" can be assigned to the area of IT security, but also to other areas. Especially for the discovery of e.g. vulnerabilities in web applications(IT-Security sector only) the acquired knowledge can be transferred in any case. As before mentioned, we will use the fundamental knowledge of what a code analysis does and how to apply it to other topics and programming languages. Once you have understood the basic principle, it is not that difficult to familiarize yourself with other code analysis frameworks, for example. One of us is particularly interested in the reverse engineering sector, where the topic of code analysis will help a lot.
+\newpage
 \section{References}
 \mbox{-[1]- \url{https://github.com/Samsung/jalangi2}}
 \newline

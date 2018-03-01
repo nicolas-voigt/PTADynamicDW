@@ -4,3 +4,4 @@
 \contentsline {figure}{\numberline {3}{\ignorespaces Provides our code analysis algorithm or the components it consists of. The representation can be understood as a hybrid between class diagram and relationship or sequence diagram, because we also wanted to depict the sequence in which the analysis is run.}}{3}{figure.3}
 \contentsline {figure}{\numberline {4}{\ignorespaces Shows the contents of the File "Level1.js", which static and dynamic DeadWrites-Types our written Jalangi-Code-Analysis is able to detect. The file can be found inside the folder tests in our repository(consider Figure 1)}}{4}{figure.4}
 \contentsline {figure}{\numberline {5}{\ignorespaces Shows the output of Test1 - Test3 which are static DeadWrites and Test 4+5 which is static as well as dynamic.}}{4}{figure.5}
+\contentsline {figure}{\numberline {6}{\ignorespaces Shows simply the process how to remove detected deadwrites.}}{5}{figure.6}
