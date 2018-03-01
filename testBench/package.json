@@ -1,0 +1,22 @@
+{
+  "name": "testbench",
+  "version": "0.0.1",
+  "description": "A test bench used to define the deadwrites of some libraries",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Kai-Nico Nase, Nicolas Voigt",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "popper.js": "^1.12.9",
+    "bootstrap": "^4.0.0",
+    "backbone": "^1.3.3",
+    "backbone.layoutmanager": "^1.0.0",
+    "bignumber": "^1.1.0",
+    "bootstrap-datepicker": "^1.7.1",
+    "cal-heatmap": "^3.6.2",
+    "countdown": "^2.6.0",
+    "underscore": "^1.8.3"
+  }
+}
