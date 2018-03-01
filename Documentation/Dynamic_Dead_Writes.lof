@@ -1,5 +1,6 @@
 \select@language {english}
-\contentsline {figure}{\numberline {1}{\ignorespaces Shows which files our project consists of on "Github".}}{3}{figure.1}
-\contentsline {figure}{\numberline {2}{\ignorespaces First Tests to get familar with Jalangi }}{3}{figure.2}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Level 1...}}}{3}{figure.2}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Level2...}}}{3}{figure.2}
+\contentsline {figure}{\numberline {1}{\ignorespaces Shows which files our project originally and currently consists of on "Github".}}{2}{figure.1}
+\contentsline {figure}{\numberline {2}{\ignorespaces Shows one of the first examples[6] we tried to reproduce to get more familar with jalangi, after we worked through the Jalangi standard tutorial[6]. That simple analysis counts branches which are executed of e.g a single javascript-function. After understanding how this example analysis works, we automatically had a better idea of what the term "callback function" actually means and what it does.}}{2}{figure.2}
+\contentsline {figure}{\numberline {3}{\ignorespaces Provides our code analysis algorithm or the components it consists of. The representation can be understood as a hybrid between class diagram and relationship or sequence diagram, because we also wanted to depict the sequence in which the analysis is run.}}{3}{figure.3}
+\contentsline {figure}{\numberline {4}{\ignorespaces Shows the contents of the File "Level1.js", which static and dynamic DeadWrites-Types our written Jalangi-Code-Analysis is able to detect. The file can be found inside the folder tests in our repository(consider Figure 1)}}{4}{figure.4}
+\contentsline {figure}{\numberline {5}{\ignorespaces Shows the output of Test1 - Test3 which are static DeadWrites and Test 4+5 which is static as well as dynamic.}}{4}{figure.5}
