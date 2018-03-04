@@ -16,6 +16,10 @@ const filePath = path.resolve(identify.getFileToTest());
 class codeLocation {
     line: number;
     column: number;
+    constructor(l: number, c: number) {
+        this.line = l;
+        this.column = c;
+    }
 }
 /**
  * This class structure is done to match the location object in esprima
@@ -24,12 +28,8 @@ class DeadWriteLocation {
     public start: codeLocation;
     public end: codeLocation;
     constructor(lineBegin: number, columnBegin: number, lineEnd: number, columnEnd: number) {
-        this.start = new codeLocation();
-        this.end = new codeLocation();
-        this.start.column = columnBegin;
-        this.start.line = lineBegin;
-        this.end.column = columnEnd;
-        this.end.line = lineEnd;
+        this.start = new codeLocation(lineBegin, columnBegin);
+        this.end = new codeLocation(lineEnd, columnEnd);
     }
 }
 
@@ -62,7 +62,7 @@ function removeDeadWrites(syntaxTree: esprima.Program, deadwritesLocations: Dead
     estraverse.replace(syntaxTreeTemp, {enter: (node) => {
         var deadWrite: DeadWriteLocation;
         for (deadWrite of deadwritesLocations) {
-            if (deadWrite.end.line === node.loc.end.line && deadWrite.end.column === node.loc.end.column) {
+            if (node.loc !== undefined && node.loc !== null && deadWrite.end.line === node.loc.end.line && deadWrite.end.column === node.loc.end.column) {
                     console.log("Removed line " + deadWrite.end.line);
                     return estraverse.VisitorOption.Remove; // remove the node from the AST
                 }

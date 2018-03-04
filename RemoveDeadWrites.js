@@ -21,7 +21,9 @@ var filePath = path.resolve(identify.getFileToTest());
  * @see DeadWriteLocation
  */
 var codeLocation = /** @class */ (function () {
-    function codeLocation() {
+    function codeLocation(l, c) {
+        this.line = l;
+        this.column = c;
     }
     return codeLocation;
 }());
@@ -30,12 +32,8 @@ var codeLocation = /** @class */ (function () {
  */
 var DeadWriteLocation = /** @class */ (function () {
     function DeadWriteLocation(lineBegin, columnBegin, lineEnd, columnEnd) {
-        this.start = new codeLocation();
-        this.end = new codeLocation();
-        this.start.column = columnBegin;
-        this.start.line = lineBegin;
-        this.end.column = columnEnd;
-        this.end.line = lineEnd;
+        this.start = new codeLocation(lineBegin, columnBegin);
+        this.end = new codeLocation(lineEnd, columnEnd);
     }
     return DeadWriteLocation;
 }());
@@ -66,7 +64,7 @@ function removeDeadWrites(syntaxTree, deadwritesLocations) {
             var deadWrite;
             for (var _i = 0, deadwritesLocations_1 = deadwritesLocations; _i < deadwritesLocations_1.length; _i++) {
                 deadWrite = deadwritesLocations_1[_i];
-                if (deadWrite.end.line === node.loc.end.line && deadWrite.end.column === node.loc.end.column) {
+                if (node.loc !== undefined && node.loc !== null && deadWrite.end.line === node.loc.end.line && deadWrite.end.column === node.loc.end.column) {
                     console.log("Removed line " + deadWrite.end.line);
                     return estraverse.VisitorOption.Remove; // remove the node from the AST
                 }

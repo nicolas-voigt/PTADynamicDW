@@ -11,6 +11,7 @@ var MemoryFrame = /** @class */ (function () {
         if (subID === void 0) { subID = 0; }
         if (parent === undefined) {
             // first frame
+            this.m_parent = undefined;
         }
         else {
             this.m_parent = parent;
@@ -20,12 +21,18 @@ var MemoryFrame = /** @class */ (function () {
         this.m_childs = new Array();
         this.m_variables = new Array();
         this.m_subFrameID = 0; // start at 0 for all subframes
+        this.m_frameEnded = false;
     }
     /**
      * @returns {number} the frame ID
      */
     MemoryFrame.prototype.ID = function () {
-        return this.m_ID.toString() + ":" + this.m_SubID.toString();
+        if (this.m_ID === undefined) {
+            return "Frame Error";
+        }
+        else {
+            return this.m_ID.toString() + ":" + this.m_SubID.toString();
+        }
     };
     /**
      * @returns {boolean} if the frame is ended
@@ -188,7 +195,7 @@ var Variable = /** @class */ (function () {
             //console.log(iid + ":variable " + this.name() + " written (over read)");
             this.m_lastIsRead = false;
         }
-        else if (this.m_lastIsWritten) {
+        else if (this.m_lastIsWritten && this.m_initIID !== undefined && this.m_LastWritten !== undefined) {
             // write over write, dynamic dead write !
             //console.log(iid + ":variable " + this.name() + " written (over write) dynamic deadwrite !");
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), iid));
@@ -220,12 +227,12 @@ var Variable = /** @class */ (function () {
      */
     Variable.prototype.frameEnd = function () {
         //console.log("End for variable " + this.name() + " lastIsRead: " + this.m_lastIsRead + " lastIsWritten: " + this.m_lastIsWritten);
-        if (this.m_lastIsWritten) {
+        if (this.m_lastIsWritten && this.m_initIID !== undefined && this.m_LastWritten !== undefined) {
             // the last call is a write, this is a deadwrite
             //console.log("static deadwrite for variable " + this.name());
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, this.m_LastWritten.IID(), undefined));
         }
-        if (!this.m_lastIsRead && !this.m_lastIsWritten) {
+        if (!this.m_lastIsRead && !this.m_lastIsWritten && this.m_initIID !== undefined) {
             // the variable was defined, but never used
             //console.log("variable " + this.name() + " was declared but never used");
             this.m_deadwrites.push(new DeadWrite(this.name(), this.m_initIID, undefined, undefined));
@@ -271,13 +278,17 @@ var DeadWrite = /** @class */ (function () {
             this.iid1 = -1;
             this.iid2 = -1; // both set to -1 for unused variable
         }
-        else if (dw2 === undefined) {
+        else if (dw1 !== undefined && dw2 === undefined) {
             this.iid2 = -1; // -1 equals to end of execution, static deadwrite
             this.iid1 = dw1;
         }
-        else {
+        else if (dw1 !== undefined && dw2 !== undefined) {
             this.iid2 = dw2;
             this.iid1 = dw1;
+        }
+        else {
+            this.iid1 = 0; // error in creating the DeadWrite
+            this.iid2 = 0;
         }
     }
     /**
@@ -373,7 +384,10 @@ function FunctionExitHook(iid, returnVal, wrappedExceptionVal) {
         console.log(dw.toString());
     }
     // reset the frame to the parent before resuming
-    currentFrame = currentFrame.getParent();
+    var parentFrame = currentFrame.getParent();
+    if (parentFrame !== undefined) {
+        currentFrame = parentFrame;
+    }
     //console.log("FunctionExitHook not implemented");
 }
 /**
@@ -414,7 +428,12 @@ function declareHook(iid, name, val, isArgument) {
 function invokeFunPreHook(iid, f, base, args, isConstructor, isMethod, functionIid, functionSid) {
     if (isMethod) {
         // function is a object member, it is a child of the currentFrame
-        currentFrame = currentFrame.addChildFrame(functionSid); // add a new child frame
+        if (functionSid !== undefined && functionIid !== undefined) {
+            currentFrame = currentFrame.addChildFrame(functionSid); // add a new child frame
+        }
+        else {
+            // native code was called, trapping this
+        }
         //console.log("new method call !");
         // functionSid will be the IID given at FunctionEnterHook to find the frame
     }
